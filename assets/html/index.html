@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>E-Waste Recycling Centers</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB_lS9T1sC52_anjg_97fOei6UC2NxYW94&libraries=places"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    #search-box {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      padding: 10px;
+      font-size: 16px;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+<input id="search-box" type="text" placeholder="Search for e-waste centers..." />
+<div id="map"></div>
+
+<script>
+  let map;
+  let markers = [];
+
+  function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: { lat: 28.6139, lng: 77.2090 }, // New Delhi
+      zoom: 12
+    });
+
+    const input = document.getElementById('search-box');
+    const searchBox = new google.maps.places.SearchBox(input);
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+    searchBox.addListener('places_changed', function () {
+      const places = searchBox.getPlaces();
+      if (!places || places.length === 0) return;
+
+      markers.forEach(marker => marker.setMap(null));
+      markers = [];
+
+      const bounds = new google.maps.LatLngBounds();
+
+      places.forEach(place => {
+        if (!place.geometry || !place.geometry.location) return;
+
+        const marker = new google.maps.Marker({
+          map,
+          position: place.geometry.location,
+          title: place.name
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<strong>${place.name}</strong><br>${place.formatted_address}`
+        });
+
+        marker.addListener('click', () => infoWindow.open(map, marker));
+
+        markers.push(marker);
+
+        if (place.geometry.viewport) {
+          bounds.union(place.geometry.viewport);
+        } else {
+          bounds.extend(place.geometry.location);
+        }
+      });
+
+      map.fitBounds(bounds);
+    });
+
+    findNearbyRecyclingCenters();
+  }
+
+  function findNearbyRecyclingCenters() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        const userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+        const request = {
+          location: userLocation,
+          radius: 5000,
+          keyword: 'e-waste recycling'
+        };
+
+        const service = new google.maps.places.PlacesService(map);
+        service.nearbySearch(request, (results, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            results.forEach(place => {
+              const marker = new google.maps.Marker({
+                map,
+                position: place.geometry.location,
+                title: place.name
+              });
+
+              const infoWindow = new google.maps.InfoWindow({
+                content: `<strong>${place.name}</strong><br>${place.vicinity}`
+              });
+
+              marker.addListener('click', () => infoWindow.open(map, marker));
+              markers.push(marker);
+            });
+          }
+        });
+      });
+    }
+  }
+
+  window.onload = initMap;
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recycling Centers Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        #map {
+          height: 500px;
+          width: 100%;
+        }
+        #pac-input {
+          position: absolute;
+          top: 10px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 300px;
+          height: 40px;
+          font-size: 16px;
+          padding: 10px;
+          z-index: 5;
+          background-color: white;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+    </style>
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB_lS9T1sC52_anjg_97fOei6UC2NxYW94&libraries=places">
+    </script>
+</head>
+<body>
+<input id="pac-input" type="text" placeholder="Search for places..." />
+<div id="map"></div>
+
+<script>
+    function initMap() {
+      const map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 28.6139, lng: 77.2090 },
+        zoom: 13,
+      });
+
+      const input = document.getElementById("pac-input");
+      const searchBox = new google.maps.places.SearchBox(input);
+
+      // ✅ Add Search Bar to Map UI
+      map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+      searchBox.addListener("places_changed", () => {
+        const places = searchBox.getPlaces();
+        if (places.length === 0) return;
+
+        const place = places[0];
+        if (!place.geometry || !place.geometry.location) return;
+
+        map.setCenter(place.geometry.location);
+        map.setZoom(15);
+
+        new google.maps.Marker({
+          map,
+          position: place.geometry.location,
+          title: place.name,
+        });
+      });
+    }
+
+    window.onload = initMap;
+</script>
+</body>
+</html>
