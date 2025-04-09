@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PlacesService {
-  static const String apiKey = 'AIzaSyB_lS9T1sC52_anjg_97fOei6UC2NxYW94';
+  static const String apiKey = 'your_api';
 
   static Future<List<Map<String, dynamic>>> fetchNearbyEwasteCenters(
       double lat, double lng) async {
